@@ -1,5 +1,7 @@
 from abc import ABCMeta, abstractmethod
 
+import six
+
 from pubnub import utils
 from pubnub.enums import PNStatusCategory, PNOperationType
 from pubnub.errors import PNERR_SUBSCRIBE_KEY_MISSING, PNERR_PUBLISH_KEY_MISSING, PNERR_CHANNEL_OR_GROUP_MISSING, \
@@ -155,7 +157,10 @@ class Endpoint(object):
                 else:
                     signed_input += self.build_path() + "\n"
 
-                signed_input += utils.prepare_pam_arguments(custom_params)
+                _custom_params = custom_params.copy()
+                if custom_params.get('channel'):
+                    _custom_params['channel'] = six.moves.urllib.parse.unquote(_custom_params['channel'])
+                signed_input += utils.prepare_pam_arguments(_custom_params)
                 signature = utils.sign_sha256(self.pubnub.config.secret_key, signed_input)
 
                 # REVIEW: add encoder map to not hardcode encoding here
